@@ -1,4 +1,4 @@
-
+-- Execute este script no seu servidor MySQL antes de iniciar o backend.
 
 CREATE DATABASE IF NOT EXISTS todolist
   CHARACTER SET utf8mb4
@@ -14,3 +14,4 @@ CREATE TABLE IF NOT EXISTS tasks (
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+

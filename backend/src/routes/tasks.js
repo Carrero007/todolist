@@ -3,7 +3,7 @@ import { pool } from '../db.js';
 const SELECT_FIELDS = 'id, title, completed, due_date, created_at';
 
 export default async function tasksRoutes(app) {
-
+  // GET /api/tasks?search=&status=all|pending|completed
   app.get('/api/tasks', async (request, reply) => {
     const { search = '', status = 'all' } = request.query;
 
@@ -19,6 +19,7 @@ export default async function tasksRoutes(app) {
     sql += ' ORDER BY (due_date IS NULL), due_date ASC, created_at DESC';
 
     const [rows] = await pool.query(sql, params);
+
     const [[totals]] = await pool.query(
       'SELECT COUNT(*) AS total, SUM(completed = 1) AS completedCount FROM tasks'
     );
@@ -30,7 +31,7 @@ export default async function tasksRoutes(app) {
     });
   });
 
-
+  // POST /api/tasks  { title, dueDate? }
   app.post('/api/tasks', async (request, reply) => {
     const { title, dueDate } = request.body ?? {};
 
@@ -51,7 +52,7 @@ export default async function tasksRoutes(app) {
     return reply.status(201).send(task);
   });
 
-
+  // PATCH /api/tasks/:id  { completed?, title?, dueDate? }
   app.patch('/api/tasks/:id', async (request, reply) => {
     const { id } = request.params;
     const { completed, title, dueDate } = request.body ?? {};
@@ -68,13 +69,11 @@ export default async function tasksRoutes(app) {
       fields.push('completed = ?');
       values.push(completed);
     }
-
     if (typeof title === 'string' && title.trim()) {
       fields.push('title = ?');
       values.push(title.trim());
     }
-
- 
+    // dueDate pode ser uma string 'YYYY-MM-DD', null (para remover) ou undefined (não alterar)
     if (dueDate !== undefined) {
       fields.push('due_date = ?');
       values.push(dueDate || null);
@@ -95,11 +94,11 @@ export default async function tasksRoutes(app) {
     return reply.send(task);
   });
 
-
+  // DELETE /api/tasks/:id
   app.delete('/api/tasks/:id', async (request, reply) => {
     const { id } = request.params;
-
     const [result] = await pool.query('DELETE FROM tasks WHERE id = ?', [id]);
+
     if (result.affectedRows === 0) {
       return reply.status(404).send({ message: 'Tarefa não encontrada.' });
     }
